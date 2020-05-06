@@ -1,4 +1,4 @@
-module laracom/demo-service
+module laracom-go/demo-service
 
 go 1.14
 
