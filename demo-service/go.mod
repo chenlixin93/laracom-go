@@ -1,4 +1,4 @@
-module laracom-go/demo-service
+module github.com/chenlixin93/laracom-go/demo-service
 
 go 1.14
 
