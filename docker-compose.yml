@@ -3,16 +3,12 @@ version: '3.3'
 
 services:
   laracom-demo-cli:
-    build:
-      context: ./
-      dockerfile: ./demo-cli/Dockerfile
+    build: ./demo-cli
     environment:
       MICRO_REGISTRY: "mdns"
 
   laracom-demo-service:
-    build:
-      context: ./
-      dockerfile: ./demo-service/Dockerfile
+    build: ./demo-service
     ports:
       - 9091:9091
     environment:

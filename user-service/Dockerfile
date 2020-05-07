@@ -1,7 +1,7 @@
 # user-service/Dockerfile
 
 # 使用 golang 官方镜像提供 Go 运行环境，并且命名为 buidler 以便后续引用
-FROM golang:1.14.2-alpine as builder
+FROM golang:alpine as builder
 
 # 启用 Go Modules 并设置 GOPROXY
 ENV GO111MODULE on
