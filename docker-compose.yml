@@ -43,5 +43,10 @@ services:
       MYSQL_DATABASE: "laracom_user"
       MYSQL_ROOT_PASSWORD: "root"
 
+  laracom-user-cli:
+    build: ./user-cli
+    environment:
+      MICRO_REGISTRY: "mdns"
+
 volumes:
   db_data: {}
