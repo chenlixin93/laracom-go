@@ -1,8 +1,8 @@
 package handler
 
 import (
-	pb "laracom-go/user-service/proto/user"
-	"laracom-go/user-service/repo"
+	pb "github.com/chenlixin93/laracom-go/user-service/proto/user"
+	"github.com/chenlixin93/laracom-go/user-service/repo"
 	"golang.org/x/crypto/bcrypt"
 	"golang.org/x/net/context"
 )

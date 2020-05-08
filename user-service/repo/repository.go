@@ -2,7 +2,7 @@ package repo
 
 import (
 	"github.com/jinzhu/gorm"
-	pb "laracom-go/user-service/proto/user"
+	pb "github.com/chenlixin93/laracom-go/user-service/proto/user"
 )
 
 type Repository interface {

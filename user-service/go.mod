@@ -1,4 +1,4 @@
-module laracom-go/user-service
+module github.com/chenlixin93/laracom-go/user-service
 
 go 1.14
 
