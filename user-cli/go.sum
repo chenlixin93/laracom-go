@@ -53,8 +53,8 @@ github.com/census-instrumentation/opencensus-proto v0.2.0/go.mod h1:f6KPmirojxKA
 github.com/census-instrumentation/opencensus-proto v0.2.1/go.mod h1:f6KPmirojxKA12rnyqOA5BBL4O983OfeGPqjHWSTneU=
 github.com/cheekybits/genny v1.0.0 h1:uGGa4nei+j20rOSeDeP5Of12XVm7TGUd4dJA9RDitfE=
 github.com/cheekybits/genny v1.0.0/go.mod h1:+tQajlRqAUrPI7DOSpB0XAqZYtQakVtB7wXkRAgjxjQ=
-github.com/chenlixin93/laracom-go/user-service v0.0.0-20200510090602-58b1eee494c3 h1:yQJdUbwdnTR9yz0n+8DnYWCiMH/QWIUfZfvthlsbNR4=
-github.com/chenlixin93/laracom-go/user-service v0.0.0-20200510090602-58b1eee494c3/go.mod h1:m9e73CNHPcnjkaz9LfSCuwDlgTS2Nta4Oyn/6X+KE+Y=
+github.com/chenlixin93/laracom-go/user-service v0.0.0-20200510102640-91e29d40aba5 h1:3LqK/N5El3bGi1oChzjmE/H8ZTTEDdjzTvNM5dePu7o=
+github.com/chenlixin93/laracom-go/user-service v0.0.0-20200510102640-91e29d40aba5/go.mod h1:m9e73CNHPcnjkaz9LfSCuwDlgTS2Nta4Oyn/6X+KE+Y=
 github.com/client9/misspell v0.3.4/go.mod h1:qj6jICC3Q7zFZvVWo7KLAzC3yx5G7kyvSDkc90ppPyw=
 github.com/cloudflare/cloudflare-go v0.10.2/go.mod h1:qhVI5MKwBGhdNU89ZRz2plgYutcJ5PCekLxXn56w6SY=
 github.com/containerd/cgroups v0.0.0-20190919134610-bf292b21730f/go.mod h1:OApqhQ4XNSNC13gXIwDjhOQxjWa/NxkwZXJ1EvqT0ko=
