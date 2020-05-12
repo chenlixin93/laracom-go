@@ -48,5 +48,15 @@ services:
     environment:
       MICRO_REGISTRY: "mdns"
 
+  laracom-micro-api:
+    image: microhq/micro:latest
+    environment:
+      MICRO_REGISTRY: "mdns"
+    links:
+      - laracom-user-service
+    ports:
+      - 8080:8080
+    command: api --handler=rpc --namespace=laracom.service
+
 volumes:
   db_data: {}
