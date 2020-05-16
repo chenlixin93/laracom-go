@@ -24,7 +24,8 @@ func (repo *UserRepository) Create(user *pb.User) error {
 }
 
 func (repo *UserRepository) Get(id string) (*pb.User, error) {
-	var user *pb.User
+	//初始化user之后再对其进行属性赋值
+	user := &pb.User{}
 	user.Id = id
 	if err := repo.Db.First(&user).Error; err != nil {
 		return nil, err

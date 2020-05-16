@@ -4,6 +4,7 @@ import (
 	pb "github.com/chenlixin93/laracom-go/user-service/proto/user"
 	"github.com/chenlixin93/laracom-go/user-service/repo"
 	"github.com/chenlixin93/laracom-go/user-service/service"
+	"github.com/jinzhu/gorm"
 	"golang.org/x/crypto/bcrypt"
 	"golang.org/x/net/context"
 	"errors"
@@ -16,10 +17,21 @@ type UserService struct {
 }
 
 func (srv *UserService) Get(ctx context.Context, req *pb.User, res *pb.Response) error {
-	user, err := srv.Repo.Get(req.Id)
-	if err != nil {
-		return err
+	var user *pb.User
+	var err error
+
+	if req.Id != "" {
+		user, err = srv.Repo.Get(req.Id)
+	} else if req.Email != "" {
+		user, err = srv.Repo.GetByEmail(req.Email)
 	}
+
+	// 不认为 ErrRecordNotFound 是错误，返回空记录即可
+	if err != nil && err != gorm.ErrRecordNotFound {
+		return err
+
+	}
+
 	res.User = user
 	return nil
 }
