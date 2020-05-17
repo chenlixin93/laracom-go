@@ -18,6 +18,7 @@ services:
   laracom-user-service:
     depends_on:
       - laracom-user-db
+      - laracom-nats
     build: ./user-service
     ports:
       - 9092:9091
@@ -26,10 +27,20 @@ services:
     environment:
       MICRO_SERVER_ADDRESS: ":9091"
       MICRO_REGISTRY: "mdns"
+      MICRO_BROKER: "nats"
+      MICRO_BROKER_ADDRESS: "laracom-nats:4222"
       DB_HOST: "laracom-user-db:3306"
       DB_NAME: "laracom_user"
       DB_USER: "test"
       DB_PASSWORD: "test"
+
+  laracom-nats:
+    image: nats:latest
+    ports:
+      - 4222:4222
+    restart: always
+    networks:
+      - microservice
 
   laracom-micro-api:
     image: microhq/micro:latest
