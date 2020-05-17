@@ -40,6 +40,8 @@ type UserService interface {
 	Auth(ctx context.Context, in *User, opts ...client.CallOption) (*Token, error)
 	ValidateToken(ctx context.Context, in *Token, opts ...client.CallOption) (*Token, error)
 	Update(ctx context.Context, in *User, opts ...client.CallOption) (*Response, error)
+	CreatePasswordReset(ctx context.Context, in *PasswordReset, opts ...client.CallOption) (*PasswordResetResponse, error)
+	ValidatePasswordResetToken(ctx context.Context, in *Token, opts ...client.CallOption) (*Token, error)
 }
 
 type userService struct {
@@ -120,6 +122,26 @@ func (c *userService) Update(ctx context.Context, in *User, opts ...client.CallO
 	return out, nil
 }
 
+func (c *userService) CreatePasswordReset(ctx context.Context, in *PasswordReset, opts ...client.CallOption) (*PasswordResetResponse, error) {
+	req := c.c.NewRequest(c.name, "UserService.CreatePasswordReset", in)
+	out := new(PasswordResetResponse)
+	err := c.c.Call(ctx, req, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *userService) ValidatePasswordResetToken(ctx context.Context, in *Token, opts ...client.CallOption) (*Token, error) {
+	req := c.c.NewRequest(c.name, "UserService.ValidatePasswordResetToken", in)
+	out := new(Token)
+	err := c.c.Call(ctx, req, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // Server API for UserService service
 
 type UserServiceHandler interface {
@@ -129,6 +151,8 @@ type UserServiceHandler interface {
 	Auth(context.Context, *User, *Token) error
 	ValidateToken(context.Context, *Token, *Token) error
 	Update(context.Context, *User, *Response) error
+	CreatePasswordReset(context.Context, *PasswordReset, *PasswordResetResponse) error
+	ValidatePasswordResetToken(context.Context, *Token, *Token) error
 }
 
 func RegisterUserServiceHandler(s server.Server, hdlr UserServiceHandler, opts ...server.HandlerOption) error {
@@ -139,6 +163,8 @@ func RegisterUserServiceHandler(s server.Server, hdlr UserServiceHandler, opts .
 		Auth(ctx context.Context, in *User, out *Token) error
 		ValidateToken(ctx context.Context, in *Token, out *Token) error
 		Update(ctx context.Context, in *User, out *Response) error
+		CreatePasswordReset(ctx context.Context, in *PasswordReset, out *PasswordResetResponse) error
+		ValidatePasswordResetToken(ctx context.Context, in *Token, out *Token) error
 	}
 	type UserService struct {
 		userService
@@ -173,4 +199,12 @@ func (h *userServiceHandler) ValidateToken(ctx context.Context, in *Token, out *
 
 func (h *userServiceHandler) Update(ctx context.Context, in *User, out *Response) error {
 	return h.UserServiceHandler.Update(ctx, in, out)
+}
+
+func (h *userServiceHandler) CreatePasswordReset(ctx context.Context, in *PasswordReset, out *PasswordResetResponse) error {
+	return h.UserServiceHandler.CreatePasswordReset(ctx, in, out)
+}
+
+func (h *userServiceHandler) ValidatePasswordResetToken(ctx context.Context, in *Token, out *Token) error {
+	return h.UserServiceHandler.ValidatePasswordResetToken(ctx, in, out)
 }

@@ -13,6 +13,7 @@ import (
 
 type UserService struct {
 	Repo repo.Repository
+	ResetRepo repo.PasswordResetInterface
 	Token service.Authable
 }
 
@@ -117,5 +118,35 @@ func (srv *UserService) Update(ctx context.Context, req *pb.User, res *pb.Respon
 		return err
 	}
 	res.User = req
+	return nil
+}
+
+func (srv *UserService) CreatePasswordReset(ctx context.Context, req *pb.PasswordReset, res *pb.PasswordResetResponse) error {
+	if req.Email == "" {
+		return errors.New("邮箱不能为空")
+	}
+	if err := srv.ResetRepo.Create(req); err != nil {
+		return err
+	}
+	res.PasswordReset = req
+	return nil
+}
+
+func (srv *UserService) ValidatePasswordResetToken(ctx context.Context, req *pb.Token, res *pb.Token) error {
+	// 校验用户亲求中的token信息是否有效
+	if req.Token == "" {
+		return errors.New("Token信息不能为空")
+	}
+
+	_, err := srv.ResetRepo.GetByToken(req.Token)
+	if err != nil && err != gorm.ErrRecordNotFound {
+		return errors.New("数据库查询异常")
+	}
+
+	if err == gorm.ErrRecordNotFound {
+		res.Valid = false
+	} else {
+		res.Valid = true
+	}
 	return nil
 }

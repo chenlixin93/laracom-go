@@ -9,6 +9,8 @@ service UserService {
     rpc Auth(User) returns (Token) {}
     rpc ValidateToken(Token) returns (Token) {}
     rpc Update(User) returns (Response) {}
+    rpc CreatePasswordReset(PasswordReset) returns (PasswordResetResponse) {}
+    rpc ValidatePasswordResetToken(Token) returns (Token) {}
 }
 
 message User {
@@ -43,4 +45,15 @@ message Token {
     string token = 1;
     bool valid = 2;
     repeated Error errors = 3;
+}
+
+message PasswordReset {
+    string email = 1;
+    string token = 2;
+    string created_at = 3;
+}
+
+message PasswordResetResponse {
+    PasswordReset passwordReset = 1;
+    repeated Error errors = 2;
 }
