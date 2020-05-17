@@ -150,3 +150,18 @@ func (srv *UserService) ValidatePasswordResetToken(ctx context.Context, req *pb.
 	}
 	return nil
 }
+
+func (srv *UserService) DeletePasswordReset(ctx context.Context, req *pb.PasswordReset, res *pb.PasswordResetResponse) error {
+	if req.Email == "" {
+		return errors.New("邮箱不能为空")
+	}
+	reset, err := srv.ResetRepo.GetByEmail(req.Email)
+	if err != nil {
+		return errors.New("数据库查询出错")
+	}
+	if err := srv.ResetRepo.Delete(reset); err != nil {
+		return err
+	}
+	res.PasswordReset = nil
+	return nil
+}

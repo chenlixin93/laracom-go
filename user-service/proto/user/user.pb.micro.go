@@ -42,6 +42,7 @@ type UserService interface {
 	Update(ctx context.Context, in *User, opts ...client.CallOption) (*Response, error)
 	CreatePasswordReset(ctx context.Context, in *PasswordReset, opts ...client.CallOption) (*PasswordResetResponse, error)
 	ValidatePasswordResetToken(ctx context.Context, in *Token, opts ...client.CallOption) (*Token, error)
+	DeletePasswordReset(ctx context.Context, in *PasswordReset, opts ...client.CallOption) (*PasswordResetResponse, error)
 }
 
 type userService struct {
@@ -142,6 +143,16 @@ func (c *userService) ValidatePasswordResetToken(ctx context.Context, in *Token,
 	return out, nil
 }
 
+func (c *userService) DeletePasswordReset(ctx context.Context, in *PasswordReset, opts ...client.CallOption) (*PasswordResetResponse, error) {
+	req := c.c.NewRequest(c.name, "UserService.DeletePasswordReset", in)
+	out := new(PasswordResetResponse)
+	err := c.c.Call(ctx, req, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // Server API for UserService service
 
 type UserServiceHandler interface {
@@ -153,6 +164,7 @@ type UserServiceHandler interface {
 	Update(context.Context, *User, *Response) error
 	CreatePasswordReset(context.Context, *PasswordReset, *PasswordResetResponse) error
 	ValidatePasswordResetToken(context.Context, *Token, *Token) error
+	DeletePasswordReset(context.Context, *PasswordReset, *PasswordResetResponse) error
 }
 
 func RegisterUserServiceHandler(s server.Server, hdlr UserServiceHandler, opts ...server.HandlerOption) error {
@@ -165,6 +177,7 @@ func RegisterUserServiceHandler(s server.Server, hdlr UserServiceHandler, opts .
 		Update(ctx context.Context, in *User, out *Response) error
 		CreatePasswordReset(ctx context.Context, in *PasswordReset, out *PasswordResetResponse) error
 		ValidatePasswordResetToken(ctx context.Context, in *Token, out *Token) error
+		DeletePasswordReset(ctx context.Context, in *PasswordReset, out *PasswordResetResponse) error
 	}
 	type UserService struct {
 		userService
@@ -207,4 +220,8 @@ func (h *userServiceHandler) CreatePasswordReset(ctx context.Context, in *Passwo
 
 func (h *userServiceHandler) ValidatePasswordResetToken(ctx context.Context, in *Token, out *Token) error {
 	return h.UserServiceHandler.ValidatePasswordResetToken(ctx, in, out)
+}
+
+func (h *userServiceHandler) DeletePasswordReset(ctx context.Context, in *PasswordReset, out *PasswordResetResponse) error {
+	return h.UserServiceHandler.DeletePasswordReset(ctx, in, out)
 }
