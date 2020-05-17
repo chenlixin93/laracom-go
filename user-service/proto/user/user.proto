@@ -8,6 +8,7 @@ service UserService {
     rpc GetAll(Request) returns (Response) {}
     rpc Auth(User) returns (Token) {}
     rpc ValidateToken(Token) returns (Token) {}
+    rpc Update(User) returns (Response) {}
 }
 
 message User {

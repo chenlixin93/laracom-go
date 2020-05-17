@@ -100,3 +100,22 @@ func (srv *UserService) ValidateToken(ctx context.Context, req *pb.Token, res *p
 
 	return nil
 }
+
+func (srv *UserService) Update(ctx context.Context, req *pb.User, res *pb.Response) error {
+	if req.Id == "" {
+		return errors.New("用户 ID 不能为空")
+	}
+	if req.Password != "" {
+		// 如果密码字段不为空的话对密码进行哈希加密
+		hashedPass, err := bcrypt.GenerateFromPassword([]byte(req.Password), bcrypt.DefaultCost)
+		if err != nil {
+			return err
+		}
+		req.Password = string(hashedPass)
+	}
+	if err := srv.Repo.Update(req); err != nil {
+		return err
+	}
+	res.User = req
+	return nil
+}

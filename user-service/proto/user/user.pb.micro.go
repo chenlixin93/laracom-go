@@ -39,6 +39,7 @@ type UserService interface {
 	GetAll(ctx context.Context, in *Request, opts ...client.CallOption) (*Response, error)
 	Auth(ctx context.Context, in *User, opts ...client.CallOption) (*Token, error)
 	ValidateToken(ctx context.Context, in *Token, opts ...client.CallOption) (*Token, error)
+	Update(ctx context.Context, in *User, opts ...client.CallOption) (*Response, error)
 }
 
 type userService struct {
@@ -109,6 +110,16 @@ func (c *userService) ValidateToken(ctx context.Context, in *Token, opts ...clie
 	return out, nil
 }
 
+func (c *userService) Update(ctx context.Context, in *User, opts ...client.CallOption) (*Response, error) {
+	req := c.c.NewRequest(c.name, "UserService.Update", in)
+	out := new(Response)
+	err := c.c.Call(ctx, req, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // Server API for UserService service
 
 type UserServiceHandler interface {
@@ -117,6 +128,7 @@ type UserServiceHandler interface {
 	GetAll(context.Context, *Request, *Response) error
 	Auth(context.Context, *User, *Token) error
 	ValidateToken(context.Context, *Token, *Token) error
+	Update(context.Context, *User, *Response) error
 }
 
 func RegisterUserServiceHandler(s server.Server, hdlr UserServiceHandler, opts ...server.HandlerOption) error {
@@ -126,6 +138,7 @@ func RegisterUserServiceHandler(s server.Server, hdlr UserServiceHandler, opts .
 		GetAll(ctx context.Context, in *Request, out *Response) error
 		Auth(ctx context.Context, in *User, out *Token) error
 		ValidateToken(ctx context.Context, in *Token, out *Token) error
+		Update(ctx context.Context, in *User, out *Response) error
 	}
 	type UserService struct {
 		userService
@@ -156,4 +169,8 @@ func (h *userServiceHandler) Auth(ctx context.Context, in *User, out *Token) err
 
 func (h *userServiceHandler) ValidateToken(ctx context.Context, in *Token, out *Token) error {
 	return h.UserServiceHandler.ValidateToken(ctx, in, out)
+}
+
+func (h *userServiceHandler) Update(ctx context.Context, in *User, out *Response) error {
+	return h.UserServiceHandler.Update(ctx, in, out)
 }
