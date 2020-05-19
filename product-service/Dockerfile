@@ -5,6 +5,7 @@ FROM golang:1.14.2-alpine as builder
 
 # 启用 Go Modules 并设置 GOPROXY
 ENV GO111MODULE on
+ENV GOPROXY https://goproxy.cn
 
 # 安装 git
 RUN sed -i 's/dl-cdn.alpinelinux.org/mirrors.aliyun.com/g' /etc/apk/repositories && \
@@ -18,7 +19,8 @@ WORKDIR /app/laracom-product-service
 COPY . .
 
 # 下载依赖
-RUN go env -w GOPROXY=https://goproxy.io,direct && go mod tidy
+# RUN go env -w GOPROXY=https://goproxy.io,direct && go mod tidy
+RUN go mod download
 
 # 构建二进制文件，添加来一些额外参数以便可以在 Alpine 中运行它
 RUN CGO_ENABLED=0 GOOS=linux go build -a -installsuffix cgo -o laracom-product-service
