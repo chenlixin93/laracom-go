@@ -52,7 +52,7 @@ func NewProductService(name string, c client.Client) ProductService {
 		c = client.NewClient()
 	}
 	if len(name) == 0 {
-		name = "laracom.service.product"
+		name = "productservice"
 	}
 	return &productService{
 		c:    c,
@@ -195,7 +195,7 @@ func NewImageService(name string, c client.Client) ImageService {
 		c = client.NewClient()
 	}
 	if len(name) == 0 {
-		name = "laracom.service.product"
+		name = "imageservice"
 	}
 	return &imageService{
 		c:    c,
@@ -323,7 +323,7 @@ func NewBrandService(name string, c client.Client) BrandService {
 		c = client.NewClient()
 	}
 	if len(name) == 0 {
-		name = "laracom.service.product"
+		name = "brandservice"
 	}
 	return &brandService{
 		c:    c,
@@ -467,7 +467,7 @@ func NewCategoryService(name string, c client.Client) CategoryService {
 		c = client.NewClient()
 	}
 	if len(name) == 0 {
-		name = "laracom.service.product"
+		name = "categoryservice"
 	}
 	return &categoryService{
 		c:    c,
@@ -620,7 +620,7 @@ func NewAttributeService(name string, c client.Client) AttributeService {
 		c = client.NewClient()
 	}
 	if len(name) == 0 {
-		name = "laracom.service.product"
+		name = "attributeservice"
 	}
 	return &attributeService{
 		c:    c,

@@ -1,6 +1,6 @@
 syntax = "proto3";
 
-package laracom.service.product;
+option go_package = "proto/product;laracom_service_product";
 
 // 1、商品服务
 service ProductService {

@@ -87,3 +87,17 @@ func (srv *ProductService) Delete(ctx context.Context, req *pb.Product, res *pb.
 	res.Product = nil
 	return nil
 }
+
+func (srv *ProductService) GetDetail(ctx context.Context, req *pb.Product, res *pb.Response) error {
+	if req.Id == 0 {
+		return errors.New("商品 ID 不能为空")
+	}
+	productModel, err := srv.ProductRepo.GetDetailById(uint(req.Id))
+	if err != nil && err != gorm.ErrRecordNotFound {
+		return err
+	}
+	if productModel != nil {
+		res.Product, _ = productModel.ToProtobuf()
+	}
+	return nil
+}
