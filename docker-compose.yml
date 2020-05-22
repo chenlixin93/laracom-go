@@ -1,6 +1,14 @@
 # docker-compose.yml
 version: '3.3'
 
+volumes:
+  db_user_data: {}
+  db_product_data: {}
+
+networks:
+  microservice:
+    external: true
+
 services:
   laracom-demo-cli:
     build: ./demo-cli
@@ -137,11 +145,3 @@ services:
     networks:
       - microservice
     command: web
-
-volumes:
-  db_user_data: {}
-  db_product_data: {}
-
-networks:
-  microservice:
-    external: true
