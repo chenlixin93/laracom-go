@@ -215,14 +215,14 @@ services:
     ports:
       - "8088:8080"
     volumes:
-      - /laracom-go/conf/e3w/config.ini:/app/conf/config.default.ini
+      - ./conf/e3w/config.ini:/app/conf/config.default.ini
     networks:
       - microservice
 
   prometheus:
     image: prom/prometheus:v2.1.0
     volumes:
-      - /laracom-go/conf/prometheus/:/etc/prometheus/
+      - ./conf/prometheus/:/etc/prometheus/
       - prometheus_data:/prometheus
     command:
       - '--config.file=/etc/prometheus/prometheus.yml'
@@ -268,7 +268,7 @@ services:
     ports:
       - 9993:9093
     volumes:
-      - /laracom-go/conf/alertmanager/:/etc/alertmanager/
+      - ./conf/alertmanager/:/etc/alertmanager/
     networks:
       - microservice
     restart: always
@@ -304,7 +304,7 @@ services:
       - 3000:3000
     volumes:
       - grafana_data:/var/lib/grafana
-      - /laracom-go/conf/grafana/provisioning/:/etc/grafana/provisioning/
+      - ./conf/grafana/provisioning/:/etc/grafana/provisioning/
     env_file:
       - ./conf/grafana/config.monitoring
     networks:
