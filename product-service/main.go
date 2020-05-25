@@ -9,7 +9,21 @@ import (
 	pb "github.com/chenlixin93/laracom-go/product-service/proto/product"
 	"github.com/chenlixin93/laracom-go/product-service/repo"
 	"log"
+	"github.com/micro/go-plugins/wrapper/monitoring/prometheus"
+    "github.com/prometheus/client_golang/prometheus/promhttp"
+    "net/http"
 )
+
+// 启动 HTTP 服务监听客户端数据采集
+func prometheusBoot() {
+    http.Handle("/metrics", promhttp.Handler())
+    go func() {
+        err := http.ListenAndServe(":9092", nil)
+        if err != nil {
+            log.Fatal("ListenAndServe: ", err)
+        }
+    }()
+}
 
 func main()  {
 	// 创建数据库连接，程序退出时断开连接
@@ -41,6 +55,7 @@ func main()  {
 	srv := micro.NewService(
 		micro.Name("laracom.service.product"),
 		micro.Version("latest"),  // 新增接口版本参数
+		micro.WrapHandler(prometheus.NewHandlerWrapper()),
 	)
 	srv.Init()
 
@@ -50,6 +65,9 @@ func main()  {
 	pb.RegisterBrandServiceHandler(srv.Server(), &handler.BrandService{brandRepo})
 	pb.RegisterCategoryServiceHandler(srv.Server(), &handler.CategoryService{categoryRepo})
 	pb.RegisterAttributeServiceHandler(srv.Server(), &handler.AttributeService{attributeRepo})
+
+	// 采集监控数据
+    prometheusBoot()
 
 	// 启动商品服务
 	if err := srv.Run(); err != nil {

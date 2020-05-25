@@ -5,7 +5,7 @@ FROM golang:1.14.2-alpine as builder
 
 # 启用 Go Modules 并设置 GOPROXY
 ENV GO111MODULE on
-ENV GOPROXY https://goproxy.cn
+ENV GOPROXY https://goproxy.io,direct
 
 # 安装 git
 RUN sed -i 's/dl-cdn.alpinelinux.org/mirrors.aliyun.com/g' /etc/apk/repositories && \

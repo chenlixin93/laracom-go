@@ -4,6 +4,8 @@ version: '3.3'
 volumes:
   db_user_data: {}
   db_product_data: {}
+  grafana_data: {}
+  prometheus_data: {}
 
 networks:
   microservice:
@@ -216,3 +218,95 @@ services:
       - /laracom-go/conf/e3w/config.ini:/app/conf/config.default.ini
     networks:
       - microservice
+
+  prometheus:
+    image: prom/prometheus:v2.1.0
+    volumes:
+      - /laracom-go/conf/prometheus/:/etc/prometheus/
+      - prometheus_data:/prometheus
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--web.console.libraries=/usr/share/prometheus/console_libraries'
+      - '--web.console.templates=/usr/share/prometheus/consoles'
+    ports:
+      - 9090:9090
+    links:
+      - cadvisor:cadvisor
+      - alertmanager:alertmanager
+    depends_on:
+      - cadvisor
+    networks:
+      - microservice
+    restart: always
+    #    deploy:
+    #      placement:
+    #        constraints:
+    #          - node.hostname == ${HOSTNAME}
+
+  node-exporter:
+    image: prom/node-exporter
+    volumes:
+      - /proc:/host/proc:ro
+      - /sys:/host/sys:ro
+      - /:/rootfs:ro
+    command:
+      - '--path.procfs=/host/proc'
+      - '--path.sysfs=/host/sys'
+      - --collector.filesystem.ignored-mount-points
+      - "^/(sys|proc|dev|host|etc|rootfs/var/lib/docker/containers|rootfs/var/lib/docker/overlay2|rootfs/run/docker/netns|rootfs/var/lib/docker/aufs)($$|/)"
+    ports:
+      - 9100:9100
+    networks:
+      - microservice
+    restart: always
+    deploy:
+      mode: global
+
+  alertmanager:
+    image: prom/alertmanager
+    ports:
+      - 9993:9093
+    volumes:
+      - /laracom-go/conf/alertmanager/:/etc/alertmanager/
+    networks:
+      - microservice
+    restart: always
+    command:
+      - '--config.file=/etc/alertmanager/config.yml'
+      - '--storage.path=/alertmanager'
+    #    deploy:
+    #      placement:
+    #        constraints:
+    #          - node.hostname == ${HOSTNAME}
+
+  cadvisor:
+    image: google/cadvisor
+    volumes:
+      - /:/rootfs:ro
+      - /var/run:/var/run:rw
+      - /sys:/sys:ro
+      - /var/lib/docker/:/var/lib/docker:ro
+    ports:
+      - 8083:8080
+    networks:
+      - microservice
+    restart: always
+    deploy:
+      mode: global
+
+  grafana:
+    image: grafana/grafana
+    user: "104"
+    depends_on:
+      - prometheus
+    ports:
+      - 3000:3000
+    volumes:
+      - grafana_data:/var/lib/grafana
+      - /laracom-go/conf/grafana/provisioning/:/etc/grafana/provisioning/
+    env_file:
+      - ./conf/grafana/config.monitoring
+    networks:
+      - microservice
+    restart: always
