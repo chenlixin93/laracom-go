@@ -23,11 +23,6 @@ services:
       MICRO_SERVER_ADDRESS: ":9091"
       MICRO_REGISTRY: "mdns"
 
-  laracom-user-cli:
-    build: ./user-cli
-    environment:
-      MICRO_REGISTRY: "mdns"
-
   laracom-etcd:
     image: bitnami/etcd:latest
     environment:
@@ -39,11 +34,19 @@ services:
     networks:
       - microservice
 
+  laracom-user-cli:
+    build: ./user-cli
+    environment:
+      MICRO_REGISTRY: "etcd"
+      MICRO_REGISTRY_ADDRESS: "etcd1:2379,etcd2:2379,etcd3:2379"
+
   laracom-user-service:
     depends_on:
       - laracom-user-db
       - laracom-nats
-      - laracom-etcd
+      - etcd1
+      - etcd2
+      - etcd3
     build: ./user-service
     ports:
       - 9092:9091
@@ -52,7 +55,7 @@ services:
     environment:
       MICRO_SERVER_ADDRESS: ":9091"
       MICRO_REGISTRY: "etcd"
-      MICRO_REGISTRY_ADDRESS: "laracom-etcd:2379"
+      MICRO_REGISTRY_ADDRESS: "etcd1:2379,etcd2:2379,etcd3:2379"
       MICRO_BROKER: "nats"
       MICRO_BROKER_ADDRESS: "laracom-nats:4222"
       DB_HOST: "laracom-user-db:3306"
@@ -63,14 +66,16 @@ services:
   laracom-product-service:
     depends_on:
       - laracom-product-db
-      - laracom-etcd
+      - etcd1
+      - etcd2
+      - etcd3
     build: ./product-service
     ports:
       - 9093:9091
     environment:
       MICRO_SERVER_ADDRESS: ":9091"
       MICRO_REGISTRY: "etcd"
-      MICRO_REGISTRY_ADDRESS: "laracom-etcd:2379"
+      MICRO_REGISTRY_ADDRESS: "etcd1:2379,etcd2:2379,etcd3:2379"
       DB_HOST: "laracom-product-db:3306"
       DB_NAME: "laracom_product"
       DB_USER: "product"
@@ -90,8 +95,8 @@ services:
     image: microhq/micro:latest
     container_name: laracom-micro-api
     environment:
-       MICRO_REGISTRY: "etcd"
-       MICRO_REGISTRY_ADDRESS: "laracom-etcd:2379"
+      MICRO_REGISTRY: "etcd"
+      MICRO_REGISTRY_ADDRESS: "etcd1:2379,etcd2:2379,etcd3:2379"
     links:
       - laracom-user-service
       - laracom-product-service
@@ -136,7 +141,7 @@ services:
     container_name: laracom-web-dashboard
     environment:
       MICRO_REGISTRY: "etcd"
-      MICRO_REGISTRY_ADDRESS: "laracom-etcd:2379"
+      MICRO_REGISTRY_ADDRESS: "etcd1:2379,etcd2:2379,etcd3:2379"
     links:
       - laracom-user-service
       - laracom-product-service
@@ -145,3 +150,69 @@ services:
     networks:
       - microservice
     command: web
+
+  etcd1:
+    image: bitnami/etcd:latest
+    container_name: etcd1
+    environment:
+      ALLOW_NONE_AUTHENTICATION: "yes"
+      ETCD_NAME: "etcd1"
+      ETCD_INITIAL_ADVERTISE_PEER_URLS: "http://etcd1:2380"
+      ETCD_LISTEN_PEER_URLS: "http://0.0.0.0:2380"
+      ETCD_LISTEN_CLIENT_URLS: "http://0.0.0.0:2379"
+      ETCD_ADVERTISE_CLIENT_URLS: "http://etcd1:2379"
+      ETCD_INITIAL_CLUSTER_TOKEN: "etcd-cluster"
+      ETCD_INITIAL_CLUSTER: "etcd1=http://etcd1:2380,etcd2=http://etcd2:2380,etcd3=http://etcd3:2380"
+      ETCD_INITIAL_CLUSTER_STATE: "new"
+    ports:
+      - 23791:2379
+      - 23801:2380
+    networks:
+      - microservice
+
+  etcd2:
+    image: bitnami/etcd:latest
+    container_name: etcd2
+    environment:
+      ALLOW_NONE_AUTHENTICATION: "yes"
+      ETCD_NAME: "etcd2"
+      ETCD_INITIAL_ADVERTISE_PEER_URLS: "http://etcd2:2380"
+      ETCD_LISTEN_PEER_URLS: "http://0.0.0.0:2380"
+      ETCD_LISTEN_CLIENT_URLS: "http://0.0.0.0:2379"
+      ETCD_ADVERTISE_CLIENT_URLS: "http://etcd2:2379"
+      ETCD_INITIAL_CLUSTER_TOKEN: "etcd-cluster"
+      ETCD_INITIAL_CLUSTER: "etcd1=http://etcd1:2380,etcd2=http://etcd2:2380,etcd3=http://etcd3:2380"
+      ETCD_INITIAL_CLUSTER_STATE: "new"
+    ports:
+      - 23792:2379
+      - 23802:2380
+    networks:
+      - microservice
+
+  etcd3:
+    image: bitnami/etcd:latest
+    container_name: etcd3
+    environment:
+      ALLOW_NONE_AUTHENTICATION: "yes"
+      ETCD_NAME: "etcd3"
+      ETCD_INITIAL_ADVERTISE_PEER_URLS: "http://etcd3:2380"
+      ETCD_LISTEN_PEER_URLS: "http://0.0.0.0:2380"
+      ETCD_LISTEN_CLIENT_URLS: "http://0.0.0.0:2379"
+      ETCD_ADVERTISE_CLIENT_URLS: "http://etcd3:2379"
+      ETCD_INITIAL_CLUSTER_TOKEN: "etcd-cluster"
+      ETCD_INITIAL_CLUSTER: "etcd1=http://etcd1:2380,etcd2=http://etcd2:2380,etcd3=http://etcd3:2380"
+      ETCD_INITIAL_CLUSTER_STATE: "new"
+    ports:
+      - 23793:2379
+      - 23803:2380
+    networks:
+      - microservice
+
+  e3w:
+    image: soyking/e3w:latest
+    ports:
+      - "8088:8080"
+    volumes:
+      - /laracom-go/conf/e3w/config.ini:/app/conf/config.default.ini
+    networks:
+      - microservice
