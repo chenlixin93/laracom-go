@@ -14,16 +14,34 @@ networks:
 services:
   laracom-demo-cli:
     build: ./demo-cli
+    depends_on:
+      - jaeger
     environment:
       MICRO_REGISTRY: "mdns"
+      MICRO_TRACE_SERVER: "jaeger:6831"
+    networks:
+      - microservice
 
   laracom-demo-service:
     build: ./demo-service
+    depends_on:
+      - jaeger
     ports:
       - 9091:9091
     environment:
       MICRO_SERVER_ADDRESS: ":9091"
       MICRO_REGISTRY: "mdns"
+      MICRO_TRACE_SERVER: "jaeger:6831"
+    networks:
+      - microservice
+
+  jaeger:
+    image: jaegertracing/all-in-one:latest
+    ports:
+      - "6831:6831/udp"
+      - "16686:16686"
+    networks:
+      - microservice
 
   laracom-etcd:
     image: bitnami/etcd:latest

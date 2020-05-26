@@ -9,6 +9,7 @@ import (
 	"github.com/chenlixin93/laracom-go/demo-service/trace"
 	"github.com/opentracing/opentracing-go"
 	"os"
+	"github.com/micro/go-micro/metadata"
 )
 
 type DemoServiceHandler struct {
