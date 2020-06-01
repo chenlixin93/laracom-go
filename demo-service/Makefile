@@ -1,5 +1,5 @@
 build:
-    protoc -I. --go_out=plugins=micro:. proto/demo/demo.proto
+    protoc --proto_path=. --micro_out=. --go_out=. proto/demo/demo.proto
     docker build -t laracom-demo-service .
 
 run:
