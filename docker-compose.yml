@@ -1,77 +1,37 @@
 # docker-compose.yml
 version: '3.3'
 
-volumes:
-  db_user_data: {}
-  db_product_data: {}
-  grafana_data: {}
-  prometheus_data: {}
-
-networks:
-  microservice:
-    external: true
-
 services:
-  laracom-demo-cli:
-    build: ./demo-cli
-    depends_on:
-      - jaeger
-    environment:
-      MICRO_REGISTRY: "mdns"
-      MICRO_TRACE_SERVER: "jaeger:6831"
-    networks:
-      - microservice
-
   laracom-demo-service:
-    build: ./demo-service
+    image: laracom/demoservice
     depends_on:
-      - jaeger
-    ports:
-      - 9091:9091
+      - etcd1
+      - etcd2
+      - etcd3
     environment:
       MICRO_SERVER_ADDRESS: ":9091"
-      MICRO_REGISTRY: "mdns"
-      MICRO_TRACE_SERVER: "jaeger:6831"
-    networks:
-      - microservice
-
-  jaeger:
-    image: jaegertracing/all-in-one:latest
-    ports:
-      - "6831:6831/udp"
-      - "16686:16686"
-    networks:
-      - microservice
-
-  laracom-etcd:
-    image: bitnami/etcd:latest
-    environment:
-      ALLOW_NONE_AUTHENTICATION: "yes"
-      ETCD_ADVERTISE_CLIENT_URLS: "http://laracom-etcd:2379"
-    ports:
-      - 2379:2379
-      - 2380:2380
-    networks:
-      - microservice
-
-  laracom-user-cli:
-    build: ./user-cli
-    environment:
       MICRO_REGISTRY: "etcd"
       MICRO_REGISTRY_ADDRESS: "etcd1:2379,etcd2:2379,etcd3:2379"
+    ports:
+      - 9091:9091
+    networks:
+      laracom_network:
+        aliases:
+          - "laracom-demo-service"
+    deploy:
+      mode: replicated
+      replicas: 1
 
   laracom-user-service:
+    image: laracom/userservice
     depends_on:
       - laracom-user-db
       - laracom-nats
       - etcd1
       - etcd2
       - etcd3
-    build: ./user-service
     ports:
       - 9092:9091
-    networks:
-      - microservice
     environment:
       MICRO_SERVER_ADDRESS: ":9091"
       MICRO_REGISTRY: "etcd"
@@ -82,14 +42,22 @@ services:
       DB_NAME: "laracom_user"
       DB_USER: "test"
       DB_PASSWORD: "test"
+    networks:
+      laracom_network:
+        aliases:
+          - "laracom-user-service"
+    deploy:
+      mode: replicated
+      replicas: 3
 
   laracom-product-service:
+    image: laracom/productservice
     depends_on:
       - laracom-product-db
       - etcd1
       - etcd2
       - etcd3
-    build: ./product-service
+      - jaeger
     ports:
       - 9093:9091
     environment:
@@ -100,31 +68,42 @@ services:
       DB_NAME: "laracom_product"
       DB_USER: "product"
       DB_PASSWORD: "test"
+      MICRO_LOG_LEVEL: "debug"
     networks:
-      - microservice
-
-  laracom-nats:
-    image: nats:latest
-    ports:
-      - 4222:4222
-    restart: always
-    networks:
-      - microservice
+      laracom_network:
+        aliases:
+          - "laracom-product-service"
+    deploy:
+      mode: replicated
+      replicas: 3
 
   laracom-micro-api:
-    image: microhq/micro:latest
-    container_name: laracom-micro-api
+    image: jasperchen888/micro:latest
     environment:
       MICRO_REGISTRY: "etcd"
       MICRO_REGISTRY_ADDRESS: "etcd1:2379,etcd2:2379,etcd3:2379"
-    links:
-      - laracom-user-service
-      - laracom-product-service
     ports:
       - 8080:8080
     networks:
-      - microservice
+      - laracom_network
     command: api --handler=rpc --namespace=laracom.service
+    deploy:
+      placement:
+        constraints: [node.role == manager]
+
+  laracom-web-dashboard:
+    image: jasperchen888/micro:latest
+    environment:
+      MICRO_REGISTRY: "etcd"
+      MICRO_REGISTRY_ADDRESS: "etcd1:2379,etcd2:2379,etcd3:2379"
+    ports:
+      - 8082:8082
+    networks:
+      - laracom_network
+    command: web
+    deploy:
+      placement:
+        constraints: [node.role == manager]
 
   laracom-user-db:
     image: mysql:5.7
@@ -132,14 +111,16 @@ services:
       - 33061:3306
     volumes:
       - db_user_data:/var/lib/mysql
-    restart: always
     environment:
       MYSQL_USER: "test"
       MYSQL_PASSWORD: "test"
       MYSQL_DATABASE: "laracom_user"
       MYSQL_ROOT_PASSWORD: "root"
     networks:
-      - microservice
+      - laracom_network
+    deploy:
+      placement:
+        constraints: [node.role == manager]
 
   laracom-product-db:
     image: mysql:5.7
@@ -147,33 +128,31 @@ services:
       - 33062:3306
     volumes:
       - db_product_data:/var/lib/mysql
-    restart: always
     environment:
       MYSQL_USER: "product"
       MYSQL_PASSWORD: "test"
       MYSQL_DATABASE: "laracom_product"
       MYSQL_ROOT_PASSWORD: "root"
     networks:
-      - microservice
+      - laracom_network
+    deploy:
+      placement:
+        constraints: [node.role == manager]
 
-  laracom-web-dashboard:
-    image: microhq/micro:latest
-    container_name: laracom-web-dashboard
-    environment:
-      MICRO_REGISTRY: "etcd"
-      MICRO_REGISTRY_ADDRESS: "etcd1:2379,etcd2:2379,etcd3:2379"
-    links:
-      - laracom-user-service
-      - laracom-product-service
+  laracom-nats:
+    image: nats:latest
     ports:
-      - 8082:8082
+      - 4222:4222
+      - 8222:8222
+      - 6222:6222
     networks:
-      - microservice
-    command: web
+      - laracom_network
+    deploy:
+      placement:
+        constraints: [node.role == manager]
 
   etcd1:
     image: bitnami/etcd:latest
-    container_name: etcd1
     environment:
       ALLOW_NONE_AUTHENTICATION: "yes"
       ETCD_NAME: "etcd1"
@@ -188,11 +167,13 @@ services:
       - 23791:2379
       - 23801:2380
     networks:
-      - microservice
+      - laracom_network
+    deploy:
+      placement:
+        constraints: [node.role == manager]
 
   etcd2:
     image: bitnami/etcd:latest
-    container_name: etcd2
     environment:
       ALLOW_NONE_AUTHENTICATION: "yes"
       ETCD_NAME: "etcd2"
@@ -207,11 +188,13 @@ services:
       - 23792:2379
       - 23802:2380
     networks:
-      - microservice
+      - laracom_network
+    deploy:
+      placement:
+        constraints: [node.role == manager]
 
   etcd3:
     image: bitnami/etcd:latest
-    container_name: etcd3
     environment:
       ALLOW_NONE_AUTHENTICATION: "yes"
       ETCD_NAME: "etcd3"
@@ -226,7 +209,10 @@ services:
       - 23793:2379
       - 23803:2380
     networks:
-      - microservice
+      - laracom_network
+    deploy:
+      placement:
+        constraints: [node.role == manager]
 
   e3w:
     image: soyking/e3w:latest
@@ -235,7 +221,10 @@ services:
     volumes:
       - ./conf/e3w/config.ini:/app/conf/config.default.ini
     networks:
-      - microservice
+      - laracom_network
+    deploy:
+      placement:
+        constraints: [node.role == manager]
 
   prometheus:
     image: prom/prometheus:v2.1.0
@@ -249,18 +238,13 @@ services:
       - '--web.console.templates=/usr/share/prometheus/consoles'
     ports:
       - 9090:9090
-    links:
-      - cadvisor:cadvisor
-      - alertmanager:alertmanager
     depends_on:
       - cadvisor
     networks:
-      - microservice
-    restart: always
-    #    deploy:
-    #      placement:
-    #        constraints:
-    #          - node.hostname == ${HOSTNAME}
+      - laracom_network
+    deploy:
+      placement:
+        constraints: [node.role == manager]
 
   node-exporter:
     image: prom/node-exporter
@@ -276,10 +260,10 @@ services:
     ports:
       - 9100:9100
     networks:
-      - microservice
-    restart: always
+      - laracom_network
     deploy:
-      mode: global
+      placement:
+        constraints: [node.role == manager]
 
   alertmanager:
     image: prom/alertmanager
@@ -288,15 +272,13 @@ services:
     volumes:
       - ./conf/alertmanager/:/etc/alertmanager/
     networks:
-      - microservice
-    restart: always
+      - laracom_network
     command:
       - '--config.file=/etc/alertmanager/config.yml'
       - '--storage.path=/alertmanager'
-    #    deploy:
-    #      placement:
-    #        constraints:
-    #          - node.hostname == ${HOSTNAME}
+    deploy:
+      placement:
+        constraints: [node.role == manager]
 
   cadvisor:
     image: google/cadvisor
@@ -308,10 +290,10 @@ services:
     ports:
       - 8083:8080
     networks:
-      - microservice
-    restart: always
+      - laracom_network
     deploy:
-      mode: global
+      placement:
+        constraints: [node.role == manager]
 
   grafana:
     image: grafana/grafana
@@ -326,5 +308,48 @@ services:
     env_file:
       - ./conf/grafana/config.monitoring
     networks:
-      - microservice
-    restart: always
+      - laracom_network
+    deploy:
+      placement:
+        constraints: [node.role == manager]
+
+  jaeger:
+    image: jaegertracing/all-in-one:1.6
+    environment:
+      COLLECTOR_ZIPKIN_HTTP_PORT: "9411"
+    ports:
+      - "5775:5775/udp"
+      - "5778:5778"
+      - "6831:6831/udp"
+      - "6832:6832/udp"
+      - "9411:9411"
+      - "14268:14268"
+      - "16686:16686"
+    networks:
+      - laracom_network
+    deploy:
+      placement:
+        constraints: [node.role == manager]
+
+  visualizer:
+    image: dockersamples/visualizer:stable
+    ports:
+      - "8090:8080"
+    stop_grace_period: 1m30s
+    volumes:
+      - "/var/run/docker.sock:/var/run/docker.sock"
+    networks:
+      - laracom_network
+    deploy:
+      placement:
+        constraints: [node.role == manager]
+
+volumes:
+  db_user_data: {}
+  db_product_data: {}
+  grafana_data: {}
+  prometheus_data: {}
+
+networks:
+  laracom_network:
+    driver: overlay
