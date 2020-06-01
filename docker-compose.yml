@@ -12,15 +12,11 @@ services:
       MICRO_SERVER_ADDRESS: ":9091"
       MICRO_REGISTRY: "etcd"
       MICRO_REGISTRY_ADDRESS: "etcd1:2379,etcd2:2379,etcd3:2379"
-    ports:
-      - 9091:9091
     networks:
-      laracom_network:
-        aliases:
-          - "laracom-demo-service"
+      - laracom_network
     deploy:
       mode: replicated
-      replicas: 1
+      replicas: 3
 
   laracom-user-service:
     image: laracom/userservice
